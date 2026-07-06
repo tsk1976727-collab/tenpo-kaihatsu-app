@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>店舗開発アプリ V3.5.1</title>
+<style>
+body{margin:0;background:#eef2f7;font-family:system-ui,"Noto Sans JP",sans-serif;color:#111827}
+.app{max-width:760px;margin:auto;min-height:100vh;background:white}
+header{background:#111827;color:white;padding:18px}
+header p{margin:0;color:#cbd5e1;font-size:12px}h1{margin:4px 0 0;font-size:22px}
+nav{display:grid;grid-template-columns:repeat(9,1fr);position:sticky;top:0;background:white;border-bottom:1px solid #ddd;z-index:10}
+nav button{border:0;background:white;padding:11px 1px;font-size:10px;color:#666;border-bottom:3px solid transparent}
+nav button.on{font-weight:800;color:#111827;border-bottom-color:#2563eb}
+main{padding:16px}section{display:none}section.on{display:block}
+h2{margin:0 0 8px}.hint{font-size:13px;color:#666;line-height:1.6}.selected{background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:12px;margin:10px 0;font-size:13px;font-weight:800}
+input,select,textarea{width:100%;padding:12px;border:1px solid #ccc;border-radius:12px;font-size:15px;background:white;box-sizing:border-box}
+label{font-weight:800;font-size:13px;display:grid;gap:6px;margin:10px 0}
+button{cursor:pointer}.primary{width:100%;border:0;border-radius:14px;background:#2563eb;color:white;padding:14px;font-weight:800;margin:8px 0}
+.sub,.del{border:1px solid #ccc;border-radius:12px;background:white;padding:10px;font-weight:700}
+.del{border-color:#fecaca;color:#991b1b}
+.card,.box{border:1px solid #e5e7eb;border-radius:16px;padding:14px;background:white;margin:12px 0;box-shadow:0 4px 14px #0000000a}
+.card.active{border:2px solid #2563eb;background:#eff6ff}
+.top{display:flex;justify-content:space-between;gap:10px}.meta{font-size:13px;color:#555;margin:4px 0}.score{font-size:30px;font-weight:900;text-align:right}
+.badge{display:inline-block;border-radius:99px;padding:7px 10px;font-size:12px;font-weight:900;margin-top:6px}.good{background:#dcfce7;color:#166534}.warn{background:#fef3c7;color:#92400e}.bad{background:#fee2e2;color:#991b1b}
+.status{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900;background:#e5e7eb;color:#374151;margin-top:6px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mini{background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:12px}.mini span{font-size:12px;color:#666;display:block}.mini strong{font-size:19px}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.actions2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.note{background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:14px;line-height:1.7;font-size:14px;margin-top:12px}
+.risk{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:14px;padding:14px;line-height:1.7;font-size:14px;margin-top:12px}
+.photo-section{border:1px solid #e5e7eb;border-radius:16px;padding:12px;margin:12px 0;background:#f9fafb}
+.photo-section h3{margin:0 0 8px;font-size:16px}.photo-list{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.photo-item{border:1px solid #e5e7eb;border-radius:12px;background:white;padding:8px}.photo-item img{width:100%;max-height:160px;object-fit:cover;border-radius:10px;background:#e5e7eb}.photo-item textarea{font-size:12px;min-height:60px;margin-top:6px}.small{font-size:12px;color:#666;line-height:1.5}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.check-group{border:1px solid #e5e7eb;border-radius:16px;padding:12px;margin:12px 0;background:#f9fafb}
+.check-group h3{margin:0 0 8px;font-size:16px}
+.check-item{display:flex;align-items:center;gap:8px;background:white;border:1px solid #e5e7eb;border-radius:12px;padding:10px;margin:8px 0;font-size:14px;font-weight:700}
+.check-item input{width:auto}.check-item{align-items:flex-start}.check-body{display:block}.check-guide{display:block;font-size:12px;color:#6b7280;line-height:1.55;margin-top:4px;font-weight:500}.priority{border-color:#f97316!important;background:#fff7ed!important}.priority .check-guide{color:#9a3412}
+.progress{height:12px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:6px}.bar{height:100%;background:#2563eb;width:0%}
+@media print{nav,header,.no-print,button{display:none!important}.app{max-width:none}section{display:block!important}body{background:white}main{padding:0}.card,.box,.note,.risk{box-shadow:none;break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><p>自分専用 / 用語修正版</p><h1>店舗開発アプリ V3.5.1</h1></header>
+<nav>
+<button id="t-list" class="on" onclick="go('list')">一覧</button>
+<button id="t-dash" onclick="goDash()">DB</button>
+<button id="t-form" onclick="goForm()">登録</button>
+<button id="t-site" onclick="goSite()">現調</button>
+<button id="t-check" onclick="goCheck()">確認</button>
+<button id="t-rate" onclick="goRate()">評価</button>
+<button id="t-pl" onclick="goPL()">PL</button>
+<button id="t-compare" onclick="goCompare()">比較</button>
+<button id="t-result" onclick="goResult()">判定</button>
+</nav>
+<main>
+<section id="list" class="on">
+<h2>物件一覧</h2><p class="hint">物件はステータスで管理します。選択した物件が各画面に引き継がれます。</p>
+<button class="primary" onclick="newItem()">＋ 新規物件を登録</button>
+<input id="q" placeholder="物件名・駅名・業態で検索" oninput="drawList()">
+<div class="filters">
+<label>ステータス表示<select id="statusFilter" onchange="drawList()"><option>進行中のみ</option><option>すべて</option><option>調査中</option><option>最終検討</option><option>交渉中</option><option>契約</option><option>工事中</option><option>オープン</option><option>見送り</option><option>アーカイブ</option></select></label>
+<label>並び順<select id="sortMode" onchange="drawList()"><option>総合点順</option><option>登録日順</option><option>坪単価順</option><option>徒歩分数順</option><option>確認率順</option><option>営業利益順</option></select></label>
+</div>
+<div id="summary" class="grid"></div><div id="cards"></div>
+<button class="del" style="width:100%" onclick="resetData()">テストデータを初期化</button>
+</section>
+
+<section id="dash">
+<h2>ダッシュボード</h2><div id="selectedDash" class="selected"></div><p class="hint">物件評価は、立地・視認性・設備・契約・業態適性・収益性を総合した100点評価です。</p>
+<div id="dashBox"></div>
+</section>
+
+<section id="form">
+<h2>物件登録・編集</h2><div id="selectedForm" class="selected"></div><p id="editMsg" class="hint"></p>
+<label>登録日<input id="date" type="date"></label>
+<label>ステータス<select id="itemStatus"><option>調査中</option><option>最終検討</option><option>交渉中</option><option>契約</option><option>工事中</option><option>オープン</option><option>見送り</option><option>アーカイブ</option></select></label>
+<label>物件タイプ<select id="propertyType"><option>居抜き</option><option>スケルトン</option><option>一部居抜き</option><option>要確認</option></select></label>
+<label>物件名<input id="propertyNameInput" placeholder="例：北千住駅前物件"></label>
+<label>住所<input id="addr" placeholder="例：東京都足立区千住"></label>
+<label>最寄駅<input id="station" placeholder="例：北千住"></label>
+<label>徒歩分数<input id="walk" type="number" placeholder="例：3"></label>
+<label>坪数<input id="tsubo" type="number" step="0.1" placeholder="例：10" oninput="calcTsubo()" onchange="calcTsubo()" onkeyup="calcTsubo()"></label>
+<label>家賃<input id="rent" type="number" placeholder="例：300000" oninput="calcTsubo()" onchange="calcTsubo()" onkeyup="calcTsubo()"></label>
+<label>坪単価<input id="unit" readonly placeholder="坪数と家賃を入力すると自動計算"></label>
+<label>想定業態<select id="type" onchange="applyBusinessMaster(false)">
+<option>居酒屋</option><option>大衆酒場</option><option>立ち飲み</option><option>焼鳥</option><option>焼肉</option><option>ホルモン</option><option>寿司</option><option>回転寿司</option><option>海鮮</option><option>和食</option><option>割烹</option><option>高級レストラン</option><option>レストラン</option><option>イタリアン</option><option>フレンチ</option><option>ビストロ</option><option>スペイン</option><option>中華</option><option>台湾料理</option><option>ラーメン</option><option>つけ麺</option><option>うどん</option><option>そば</option><option>カレー</option><option>定食</option><option>洋食</option><option>カフェ</option><option>喫茶店</option><option>ベーカリー</option><option>スイーツ</option><option>テイクアウト</option><option>デリ</option><option>バー</option><option>ワインバー</option><option>フードコート</option><option>社員食堂</option><option>ゴーストレストラン</option><option>その他</option>
+</select></label>
+<label>メモ<textarea id="memo" rows="3"></textarea></label>
+<button class="primary" onclick="saveItem()">保存して次へ（現地調査）</button>
+</section>
+
+<section id="site">
+<h2>ロケハン・現地調査</h2><div id="selectedSite" class="selected"></div>
+<div class="grid no-print">
+<button class="sub" onclick="getGPS()">現在地を記録</button>
+<button class="sub" onclick="startVoiceMemo()">音声メモ開始</button>
+</div>
+<div id="gpsBox" class="box"></div>
+<p class="hint">写真カテゴリは4つ。各カテゴリに複数枚登録できます。</p>
+<div class="photo-section"><h3>外観</h3><input type="file" accept="image/*" multiple onchange="loadImages('exterior',this)"><div id="photosExterior" class="photo-list"></div></div>
+<div class="photo-section"><h3>店内・内装</h3><input type="file" accept="image/*" multiple onchange="loadImages('interior',this)"><div id="photosInterior" class="photo-list"></div></div>
+<div class="photo-section"><h3>厨房</h3><input type="file" accept="image/*" multiple onchange="loadImages('kitchen',this)"><div id="photosKitchen" class="photo-list"></div></div>
+<div class="photo-section"><h3>周辺・人流</h3><input type="file" accept="image/*" multiple onchange="loadImages('around',this)"><div id="photosAround" class="photo-list"></div></div>
+<label>外観・ファサード印象<textarea id="facadeMemo" rows="3"></textarea></label>
+<label>周辺環境メモ<textarea id="aroundMemo" rows="3"></textarea></label>
+<label>追加確認事項<textarea id="todoMemo" rows="3"></textarea></label>
+<label>音声/ロケハンメモ<textarea id="voiceMemo" rows="4" placeholder="音声入力または手入力"></textarea></label>
+<button class="primary" onclick="saveSite()">保存して次へ（確認）</button>
+</section>
+
+<section id="check">
+<h2>スマート確認</h2><div id="selectedCheck" class="selected"></div>
+<p class="hint">物件タイプに応じて必要な確認項目を表示します。</p>
+<div id="checkSummary" class="box"></div>
+<div id="checkGroups"></div>
+<label>気になることメモ<textarea id="checkMemo" rows="4"></textarea></label>
+<button class="sub" style="width:100%" onclick="makeRuleComment()">ルール判定コメントを自動作成</button>
+<label>ルール判定コメント<textarea id="ruleComment" rows="5"></textarea></label>
+<button class="primary" onclick="saveCheck()">保存して次へ（評価）</button>
+</section>
+
+<section id="rate">
+<h2>評価入力</h2><div id="selectedRate" class="selected"></div>
+<div class="box"><b>評価目安</b><br>5=非常に強い / 4=強い / 3=普通 / 2=弱い / 1=かなり弱い</div>
+<label>人流<select id="people"></select></label>
+<label>乗降者数<select id="pass"></select></label>
+<label>商圏<select id="market"></select></label>
+<label>視認性<select id="visible"></select></label>
+<label>競合<select id="comp"></select></label>
+<label>駅距離<select id="dist"></select></label>
+<label>家賃妥当性<select id="rentok"></select></label>
+<button class="sub" style="width:100%" onclick="makeReason()">評価理由を自動作成</button>
+<label>評価理由<textarea id="reason" rows="4"></textarea></label>
+<button class="primary" onclick="saveRate()">保存して次へ（PL）</button>
+</section>
+
+<section id="pl">
+<h2>簡易PLシミュレーション</h2><div id="selectedPL" class="selected"></div>
+<p class="hint">業態マスタの基準値を使って、坪売上・家賃比率・投資回収を確認します。</p>
+<button class="sub" style="width:100%" onclick="applyBusinessMaster(true)">業態マスタからPL初期値を反映</button>
+<div id="masterBox" class="box"></div>
+<div class="grid">
+<label>想定月商<input id="sales" type="number" oninput="calcPL()"></label>
+<label>目標坪売上<input id="targetTsuboSales" type="number" oninput="calcPL()"></label>
+<label>原価率 %<input id="costRate" type="number" oninput="calcPL()"></label>
+<label>人件費率 %<input id="laborRate" type="number" oninput="calcPL()"></label>
+<label>その他経費率 %<input id="otherRate" type="number" oninput="calcPL()"></label>
+<label>家賃比率上限 %<input id="rentRateLimit" type="number" oninput="calcPL()"></label>
+<label>初期投資<input id="investment" type="number" oninput="calcPL()"></label>
+<label>想定客単価<input id="avgSpend" type="number" oninput="calcPL()"></label>
+</div>
+<div id="plBox" class="box"></div>
+<button class="primary" onclick="savePL()">保存して次へ（判定）</button>
+</section>
+
+
+<section id="compare">
+<h2>物件比較</h2>
+<p class="hint">進行中の物件をスコア・収益・確認率で比較します。</p>
+<div id="compareBox"></div>
+</section>
+
+<section id="result">
+<h2>判定結果・レポート</h2><div id="selectedResult" class="selected"></div>
+<div class="grid no-print">
+<button class="sub" onclick="window.print()">印刷 / PDF保存</button>
+<button class="sub" onclick="goDash()">ダッシュボードへ</button>
+</div>
+<div id="res"></div>
+</section>
+</main>
+</div>
+
+<script>
+const KEY='tenpo-app-v28';
+let currentId=null,editId=null;
+let data=JSON.parse(localStorage.getItem(KEY)||'[]');
+const BUSINESS_MASTER = {"居酒屋": {"客単価": 3500, "目標坪売上": 200000, "原価率": 32, "人件費率": 30, "家賃比率上限": 10, "初期投資目安坪": 450000, "回転率": 1.6, "高コスパ": 4, "低オペ": 3, "高利益": 3, "再現性": 4, "FC": 3, "オペ難易度": "中"}, "大衆酒場": {"客単価": 2800, "目標坪売上": 250000, "原価率": 33, "人件費率": 28, "家賃比率上限": 12, "初期投資目安坪": 400000, "回転率": 1.9, "高コスパ": 5, "低オペ": 4, "高利益": 4, "再現性": 4, "FC": 4, "オペ難易度": "中"}, "立ち飲み": {"客単価": 2200, "目標坪売上": 300000, "原価率": 34, "人件費率": 20, "家賃比率上限": 15, "初期投資目安坪": 300000, "回転率": 2.5, "高コスパ": 5, "低オペ": 5, "高利益": 4, "再現性": 4, "FC": 4, "オペ難易度": "低"}, "焼鳥": {"客単価": 3500, "目標坪売上": 250000, "原価率": 30, "人件費率": 25, "家賃比率上限": 12, "初期投資目安坪": 500000, "回転率": 1.7, "高コスパ": 4, "低オペ": 3, "高利益": 4, "再現性": 4, "FC": 4, "オペ難易度": "中"}, "焼肉": {"客単価": 6000, "目標坪売上": 280000, "原価率": 38, "人件費率": 22, "家賃比率上限": 10, "初期投資目安坪": 800000, "回転率": 1.2, "高コスパ": 3, "低オペ": 3, "高利益": 4, "再現性": 3, "FC": 3, "オペ難易度": "高"}, "ホルモン": {"客単価": 3500, "目標坪売上": 260000, "原価率": 36, "人件費率": 23, "家賃比率上限": 12, "初期投資目安坪": 650000, "回転率": 1.5, "高コスパ": 4, "低オペ": 3, "高利益": 4, "再現性": 3, "FC": 3, "オペ難易度": "中"}, "寿司": {"客単価": 8000, "目標坪売上": 300000, "原価率": 38, "人件費率": 26, "家賃比率上限": 10, "初期投資目安坪": 700000, "回転率": 1.1, "高コスパ": 2, "低オペ": 2, "高利益": 4, "再現性": 2, "FC": 2, "オペ難易度": "高"}, "回転寿司": {"客単価": 2200, "目標坪売上": 350000, "原価率": 42, "人件費率": 20, "家賃比率上限": 10, "初期投資目安坪": 1000000, "回転率": 2.2, "高コスパ": 4, "低オペ": 4, "高利益": 4, "再現性": 4, "FC": 5, "オペ難易度": "高"}, "海鮮": {"客単価": 4000, "目標坪売上": 230000, "原価率": 36, "人件費率": 28, "家賃比率上限": 11, "初期投資目安坪": 450000, "回転率": 1.4, "高コスパ": 4, "低オペ": 3, "高利益": 3, "再現性": 3, "FC": 3, "オペ難易度": "中"}, "和食": {"客単価": 5000, "目標坪売上": 220000, "原価率": 34, "人件費率": 30, "家賃比率上限": 10, "初期投資目安坪": 550000, "回転率": 1.2, "高コスパ": 3, "低オペ": 2, "高利益": 3, "再現性": 3, "FC": 2, "オペ難易度": "高"}, "割烹": {"客単価": 10000, "目標坪売上": 250000, "原価率": 36, "人件費率": 30, "家賃比率上限": 9, "初期投資目安坪": 800000, "回転率": 0.9, "高コスパ": 2, "低オペ": 1, "高利益": 4, "再現性": 2, "FC": 1, "オペ難易度": "高"}, "高級レストラン": {"客単価": 15000, "目標坪売上": 280000, "原価率": 35, "人件費率": 32, "家賃比率上限": 9, "初期投資目安坪": 1200000, "回転率": 0.8, "高コスパ": 1, "低オペ": 1, "高利益": 4, "再現性": 2, "FC": 1, "オペ難易度": "高"}, "レストラン": {"客単価": 4500, "目標坪売上": 220000, "原価率": 32, "人件費率": 30, "家賃比率上限": 10, "初期投資目安坪": 600000, "回転率": 1.3, "高コスパ": 3, "低オペ": 2, "高利益": 3, "再現性": 3, "FC": 2, "オペ難易度": "中"}, "イタリアン": {"客単価": 4500, "目標坪売上": 230000, "原価率": 32, "人件費率": 30, "家賃比率上限": 10, "初期投資目安坪": 600000, "回転率": 1.4, "高コスパ": 3, "低オペ": 2, "高利益": 3, "再現性": 3, "FC": 3, "オペ難易度": "中"}, "フレンチ": {"客単価": 8000, "目標坪売上": 250000, "原価率": 34, "人件費率": 32, "家賃比率上限": 9, "初期投資目安坪": 900000, "回転率": 0.9, "高コスパ": 2, "低オペ": 1, "高利益": 3, "再現性": 2, "FC": 1, "オペ難易度": "高"}, "ビストロ": {"客単価": 5000, "目標坪売上": 240000, "原価率": 33, "人件費率": 29, "家賃比率上限": 10, "初期投資目安坪": 650000, "回転率": 1.3, "高コスパ": 3, "低オペ": 2, "高利益": 3, "再現性": 3, "FC": 2, "オペ難易度": "中"}, "スペイン": {"客単価": 4500, "目標坪売上": 230000, "原価率": 33, "人件費率": 28, "家賃比率上限": 10, "初期投資目安坪": 600000, "回転率": 1.4, "高コスパ": 3, "低オペ": 3, "高利益": 3, "再現性": 3, "FC": 2, "オペ難易度": "中"}, "中華": {"客単価": 3000, "目標坪売上": 260000, "原価率": 34, "人件費率": 25, "家賃比率上限": 12, "初期投資目安坪": 500000, "回転率": 1.8, "高コスパ": 4, "低オペ": 3, "高利益": 4, "再現性": 4, "FC": 4, "オペ難易度": "中"}, "台湾料理": {"客単価": 2500, "目標坪売上": 270000, "原価率": 33, "人件費率": 24, "家賃比率上限": 12, "初期投資目安坪": 450000, "回転率": 1.9, "高コスパ": 4, "低オペ": 4, "高利益": 4, "再現性": 4, "FC": 4, "オペ難易度": "中"}, "ラーメン": {"客単価": 1100, "目標坪売上": 350000, "原価率": 35, "人件費率": 25, "家賃比率上限": 12, "初期投資目安坪": 550000, "回転率": 3.0, "高コスパ": 5, "低オペ": 4, "高利益": 5, "再現性": 4, "FC": 4, "オペ難易度": "中"}, "つけ麺": {"客単価": 1200, "目標坪売上": 330000, "原価率": 36, "人件費率": 25, "家賃比率上限": 12, "初期投資目安坪": 550000, "回転率": 2.7, "高コスパ": 5, "低オペ": 4, "高利益": 5, "再現性": 3, "FC": 3, "オペ難易度": "中"}, "うどん": {"客単価": 850, "目標坪売上": 280000, "原価率": 30, "人件費率": 24, "家賃比率上限": 12, "初期投資目安坪": 450000, "回転率": 3.0, "高コスパ": 5, "低オペ": 4, "高利益": 4, "再現性": 4, "FC": 4, "オペ難易度": "中"}, "そば": {"客単価": 900, "目標坪売上": 260000, "原価率": 30, "人件費率": 24, "家賃比率上限": 12, "初期投資目安坪": 450000, "回転率": 2.8, "高コスパ": 5, "低オペ": 4, "高利益": 4, "再現性": 4, "FC": 4, "オペ難易度": "中"}, "カレー": {"客単価": 1000, "目標坪売上": 300000, "原価率": 32, "人件費率": 22, "家賃比率上限": 13, "初期投資目安坪": 350000, "回転率": 2.8, "高コスパ": 5, "低オペ": 5, "高利益": 4, "再現性": 5, "FC": 5, "オペ難易度": "低"}, "定食": {"客単価": 1200, "目標坪売上": 250000, "原価率": 34, "人件費率": 28, "家賃比率上限": 12, "初期投資目安坪": 400000, "回転率": 2.2, "高コスパ": 5, "低オペ": 3, "高利益": 3, "再現性": 4, "FC": 4, "オペ難易度": "中"}, "洋食": {"客単価": 1800, "目標坪売上": 240000, "原価率": 33, "人件費率": 30, "家賃比率上限": 11, "初期投資目安坪": 500000, "回転率": 1.7, "高コスパ": 4, "低オペ": 3, "高利益": 3, "再現性": 3, "FC": 3, "オペ難易度": "中"}, "カフェ": {"客単価": 1200, "目標坪売上": 180000, "原価率": 28, "人件費率": 35, "家賃比率上限": 10, "初期投資目安坪": 500000, "回転率": 1.5, "高コスパ": 4, "低オペ": 4, "高利益": 2, "再現性": 4, "FC": 4, "オペ難易度": "低"}, "喫茶店": {"客単価": 1000, "目標坪売上": 160000, "原価率": 27, "人件費率": 35, "家賃比率上限": 10, "初期投資目安坪": 400000, "回転率": 1.3, "高コスパ": 3, "低オペ": 4, "高利益": 2, "再現性": 3, "FC": 3, "オペ難易度": "低"}, "ベーカリー": {"客単価": 700, "目標坪売上": 280000, "原価率": 32, "人件費率": 28, "家賃比率上限": 12, "初期投資目安坪": 700000, "回転率": 4.0, "高コスパ": 4, "低オペ": 3, "高利益": 4, "再現性": 4, "FC": 4, "オペ難易度": "高"}, "スイーツ": {"客単価": 900, "目標坪売上": 260000, "原価率": 30, "人件費率": 25, "家賃比率上限": 12, "初期投資目安坪": 500000, "回転率": 3.0, "高コスパ": 4, "低オペ": 4, "高利益": 4, "再現性": 4, "FC": 4, "オペ難易度": "中"}, "テイクアウト": {"客単価": 900, "目標坪売上": 350000, "原価率": 32, "人件費率": 18, "家賃比率上限": 15, "初期投資目安坪": 250000, "回転率": 5.0, "高コスパ": 5, "低オペ": 5, "高利益": 5, "再現性": 5, "FC": 5, "オペ難易度": "低"}, "デリ": {"客単価": 1000, "目標坪売上": 300000, "原価率": 33, "人件費率": 22, "家賃比率上限": 13, "初期投資目安坪": 350000, "回転率": 3.5, "高コスパ": 5, "低オペ": 4, "高利益": 4, "再現性": 4, "FC": 4, "オペ難易度": "中"}, "バー": {"客単価": 4000, "目標坪売上": 220000, "原価率": 25, "人件費率": 25, "家賃比率上限": 12, "初期投資目安坪": 400000, "回転率": 1.0, "高コスパ": 3, "低オペ": 4, "高利益": 4, "再現性": 3, "FC": 2, "オペ難易度": "低"}, "ワインバー": {"客単価": 6000, "目標坪売上": 240000, "原価率": 30, "人件費率": 25, "家賃比率上限": 11, "初期投資目安坪": 500000, "回転率": 0.9, "高コスパ": 2, "低オペ": 3, "高利益": 4, "再現性": 2, "FC": 1, "オペ難易度": "中"}, "フードコート": {"客単価": 1200, "目標坪売上": 350000, "原価率": 34, "人件費率": 18, "家賃比率上限": 15, "初期投資目安坪": 600000, "回転率": 3.5, "高コスパ": 5, "低オペ": 5, "高利益": 4, "再現性": 5, "FC": 5, "オペ難易度": "中"}, "社員食堂": {"客単価": 800, "目標坪売上": 180000, "原価率": 35, "人件費率": 25, "家賃比率上限": 8, "初期投資目安坪": 300000, "回転率": 2.0, "高コスパ": 4, "低オペ": 4, "高利益": 2, "再現性": 4, "FC": 3, "オペ難易度": "中"}, "ゴーストレストラン": {"客単価": 1500, "目標坪売上": 400000, "原価率": 35, "人件費率": 18, "家賃比率上限": 8, "初期投資目安坪": 200000, "回転率": 5.0, "高コスパ": 4, "低オペ": 5, "高利益": 4, "再現性": 3, "FC": 3, "オペ難易度": "低"}, "その他": {"客単価": 2000, "目標坪売上": 220000, "原価率": 33, "人件費率": 28, "家賃比率上限": 10, "初期投資目安坪": 450000, "回転率": 1.5, "高コスパ": 3, "低オペ": 3, "高利益": 3, "再現性": 3, "FC": 3, "オペ難易度": "中"}};
+
+const baseChecklist={
+ '共通':['営業時間制限確認','看板制限確認','ゴミ置場確認','搬入口確認','近隣クレームリスク確認'],
+ '居抜き':['造作譲渡条件確認','厨房設備状態確認','ダクト状態確認','グリストラップ確認','前業態の退店理由確認'],
+ 'スケルトン':['給排水引込確認','ガス容量確認','電気容量確認','排気ルート確認','厨房レイアウト確認'],
+ '一部居抜き':['残置設備の使用可否確認','追加工事範囲確認','ダクト再利用確認','給排水位置確認','造作譲渡条件確認'],
+ '要確認':['物件状態確認','設備条件確認','工事範囲確認','契約条件確認','用途制限確認']
+};
+
+const CHECK_GUIDE = {
+ '営業時間制限確認':'深夜営業・早朝営業・酒類提供の制限を確認。住宅上階や商業施設内は特に注意。',
+ '看板制限確認':'袖看板・壁面看板・置き看板・LED可否を確認。夜間視認性も確認。',
+ 'ゴミ置場確認':'専用/共用、24時間利用可否、臭気対策、回収曜日を確認。',
+ '搬入口確認':'食材搬入・酒類搬入・大型什器搬入の動線を確認。',
+ '近隣クレームリスク確認':'上階住居、隣接美容室・病院・塾・保育園・マンション管理組合に注意。',
+ '造作譲渡条件確認':'譲渡金、対象設備、リース残、故障時責任、撤去義務を確認。',
+ '厨房設備状態確認':'冷蔵庫・製氷機・コンロ・シンク・給湯器の年式と動作確認。',
+ 'ダクト状態確認':'屋上排気か横引きか、清掃履歴、臭気・煙の近隣影響を確認。',
+ 'グリストラップ確認':'容量・設置場所・清掃頻度・排水経路を確認。重飲食は必須級。',
+ '前業態の退店理由確認':'売上不振、家賃負担、人材、設備不良、近隣トラブルを確認。',
+ '給排水引込確認':'厨房位置に給水・排水が届くか。排水勾配と床上げ要否を確認。',
+ 'ガス容量確認':'小型飲食10〜16号、ラーメン16〜20号以上、焼肉20号以上を目安に確認。',
+ '電気容量確認':'カフェ40〜60A、居酒屋60A以上、ラーメン100A以上、焼肉150A以上を目安に確認。',
+ '排気ルート確認':'屋上排気が理想。横引き・低層排気は臭気クレームリスクあり。',
+ '厨房レイアウト確認':'仕込み量、提供スピード、スタッフ人数、洗い場動線を確認。',
+ '残置設備の使用可否確認':'使える設備・使えない設備を分ける。修理費込みで判断。',
+ '追加工事範囲確認':'残置活用と追加工事の境界を明確化。見積もり前提を揃える。',
+ 'ダクト再利用確認':'サイズ・位置・清掃状態・排気能力を確認。',
+ '給排水位置確認':'既存位置で業態が成立するか。移設費用に注意。',
+ '物件状態確認':'スケルトンか居抜きか、床・壁・天井・設備残置の状態を確認。',
+ '設備条件確認':'電気・ガス・水道・排気・空調・給湯を確認。',
+ '工事範囲確認':'A工事/B工事/C工事、指定業者、工事可能時間を確認。',
+ '契約条件確認':'保証金、礼金、償却、更新料、解約予告、原状回復を確認。',
+ '用途制限確認':'重飲食可否、深夜営業可否、酒類提供、臭気・煙の制限を確認。'
+};
+
+function priorityItems(x){
+ const type = x && x.type ? x.type : 'その他';
+ const pt = x && x.propertyType ? x.propertyType : '要確認';
+ let arr = [];
+ if(['ラーメン','つけ麺','焼肉','ホルモン','焼鳥','中華','台湾料理','フードコート'].includes(type)) arr.push('排気ルート確認','ダクト状態確認','電気容量確認','ガス容量確認','グリストラップ確認');
+ if(['カフェ','喫茶店','スイーツ','ベーカリー'].includes(type)) arr.push('電気容量確認','看板制限確認','ゴミ置場確認');
+ if(['バー','ワインバー','居酒屋','大衆酒場','立ち飲み'].includes(type)) arr.push('営業時間制限確認','近隣クレームリスク確認','看板制限確認');
+ if(pt==='スケルトン') arr.push('給排水引込確認','電気容量確認','ガス容量確認','排気ルート確認');
+ if(pt==='居抜き') arr.push('造作譲渡条件確認','厨房設備状態確認','前業態の退店理由確認');
+ return [...new Set(arr)];
+}
+
+function el(id){return document.getElementById(id)}
+function sample(){let id=Date.now();currentId=id;return[{id,date:new Date().toISOString().slice(0,10),status:'調査中',propertyType:'居抜き',name:'北千住テスト物件',addr:'東京都足立区千住',station:'北千住',walk:3,tsubo:10,rent:300000,type:'居酒屋',memo:'サンプル',reason:'駅近で人流は強い。競合はやや多く、家賃妥当性は追加確認。',check:{items:{},memo:'排気・電気容量は要確認。',ruleComment:''},site:{lat:'',lng:'',facadeMemo:'駅動線から見えるが、看板位置は要確認。',aroundMemo:'居酒屋競合は多いが、人流も強い。',todoMemo:'排気・電気容量・営業時間制限を確認。',voiceMemo:'',photos:{exterior:[],interior:[],kitchen:[],around:[]}},rate:{people:4,pass:5,market:4,visible:4,comp:3,dist:5,rentok:3},pl:{sales:2500000,targetTsuboSales:200000,costRate:32,laborRate:30,otherRate:15,rentRateLimit:10,investment:6000000,avgSpend:3500}}]}
+if(!data.length){data=sample();save()}else{currentId=data[0].id}
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function p(){return data.find(x=>x.id==currentId)||data[0]}
+function yen(n){return n?Number(n).toLocaleString('ja-JP')+'円':''}
+function unit(x){return x.tsubo&&x.rent?Math.round(Number(x.rent)/Number(x.tsubo)):0}
+function score(x){let r=x.rate||{},a=Math.round(((+r.people||0)+(+r.pass||0))/10*25),m=Math.round((+r.market||0)/5*25),l=Math.round(((+r.visible||0)+(+r.comp||0)+(+r.dist||0))/15*25),pr=Math.round((+r.rentok||0)/5*25),t=a+m+l+pr,j=t>=80?'出店ライン':t>=60?'要検討':'見送り';return{a,m,l,pr,t,j}}
+function checklistFor(x){let type=x.propertyType||'要確認';return [...baseChecklist['共通'],...(baseChecklist[type]||baseChecklist['要確認'])]}
+function checkRate(x){let items=x.check?.items||{},all=checklistFor(x),done=all.filter(k=>items[k]).length;return{done,total:all.length,rate:all.length?Math.round(done/all.length*100):0,missing:all.filter(k=>!items[k])}}
+function plCalc(x){let pl=x.pl||{},sales=+pl.sales||0,rent=+x.rent||0,tsubo=+x.tsubo||0,cost=sales*(+pl.costRate||0)/100,labor=sales*(+pl.laborRate||0)/100,other=sales*(+pl.otherRate||0)/100,profit=sales-cost-labor-other-rent,margin=sales?Math.round(profit/sales*100):0,payback=profit>0&&pl.investment?Math.round((+pl.investment/profit)*10)/10:null,rentRate=sales?Math.round(rent/sales*100):0,tsuboSales=tsubo?Math.round(sales/tsubo):0,targetTsuboSales=+pl.targetTsuboSales||getMaster(x.type).目標坪売上||0,rentRateLimit=+pl.rentRateLimit||getMaster(x.type).家賃比率上限||0;return{sales,cost,labor,other,rent,profit,margin,payback,rentRate,tsuboSales,targetTsuboSales,rentRateLimit}}
+function getMaster(type){return BUSINESS_MASTER[type]||BUSINESS_MASTER['その他']}
+function masterScore(x){let m=getMaster(x.type);return Math.round((m.高コスパ+m.低オペ+m.高利益)/3*10)/10}
+function ruleJudge(x){let s=score(x),cr=checkRate(x),u=unit(x),pc=plCalc(x),m=getMaster(x.type),risks=[],goods=[];if(s.a>=20)goods.push('集客力が強い');if(s.l>=20)goods.push('立地力が強い');if(pc.profit>0)goods.push('営業利益が黒字');if(pc.tsuboSales>=pc.targetTsuboSales&&pc.targetTsuboSales>0)goods.push('坪売上が業態基準以上');if(masterScore(x)>=4)goods.push('三方良し適性が高い');if(cr.rate<60)risks.push('確認率が低い');if(u>=45000)risks.push('坪単価が高い');if((x.walk||0)>=8)risks.push('駅距離が遠い');if(s.pr<=10)risks.push('収益性が弱い');if(pc.profit<=0)risks.push('営業利益が赤字');if(pc.rentRate>=pc.rentRateLimit&&pc.rentRateLimit>0)risks.push('家賃比率が業態基準超過');if(pc.tsuboSales<pc.targetTsuboSales&&pc.targetTsuboSales>0)risks.push('坪売上が業態基準未達');let level='要検討';if(s.t>=80&&cr.rate>=70&&risks.length<=1&&pc.profit>0&&pc.tsuboSales>=pc.targetTsuboSales)level='出店候補';if(s.t<60||risks.length>=3||pc.profit<=0)level='慎重判断';return{level,risks,goods}}
+function cls(j){return j=='出店ライン'?'good':j=='要検討'?'warn':'bad'}
+function selectedText(){let x=p();return x?`選択中：${x.name}（${x.station}駅 / ${x.type} / ${x.propertyType||'要確認'} / ${x.status||'調査中'}）`:'物件が選択されていません'}
+function showSelected(){['selectedDash','selectedForm','selectedSite','selectedCheck','selectedRate','selectedPL','selectedResult'].forEach(id=>{if(el(id))el(id).textContent=selectedText()})}
+function go(id){document.querySelectorAll('section').forEach(x=>x.classList.remove('on'));document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));el(id).classList.add('on');el('t-'+id).classList.add('on');refresh()}
+function goDash(){if(!p()){alert('先に物件を登録してください');return}drawDash();go('dash')}
+function goForm(){if(currentId){editItem(currentId)}else newItem()}
+function goSite(){if(!p()){alert('先に物件を登録してください');return}loadSite();go('site')}
+function goCheck(){if(!p()){alert('先に物件を登録してください');return}loadCheck();go('check')}
+function goRate(){if(!p()){alert('先に物件を登録してください');return}loadRate();go('rate')}
+function goPL(){if(!p()){alert('先に物件を登録してください');return}loadPL();go('pl')}
+function goCompare(){drawCompare();go('compare')}
+function goResult(){if(!p()){alert('先に物件を登録してください');return}drawResult();go('result')}
+function opts(){['people','pass','market','visible','comp','dist','rentok'].forEach(id=>{let e=el(id);if(!e.options.length){for(let i=1;i<=5;i++)e.innerHTML+=`<option value="${i}">${i}点</option>`}})}
+function refresh(){opts();drawList();showSelected()}
+function drawList(){let q=(el('q').value||'').toLowerCase(),filter=el('statusFilter').value,arr=data.filter(x=>(x.name+x.station+x.type+x.addr).toLowerCase().includes(q));if(filter=='進行中のみ')arr=arr.filter(x=>!['見送り','アーカイブ','オープン'].includes(x.status||'調査中'));else if(filter!='すべて')arr=arr.filter(x=>(x.status||'調査中')==filter);let mode=el('sortMode').value;arr.sort((a,b)=>mode=='登録日順'?String(b.date).localeCompare(String(a.date)):mode=='坪単価順'?unit(a)-unit(b):mode=='徒歩分数順'?(a.walk||999)-(b.walk||999):mode=='確認率順'?checkRate(b).rate-checkRate(a).rate:mode=='営業利益順'?plCalc(b).profit-plCalc(a).profit:score(b).t-score(a).t);let active=data.filter(x=>!['見送り','アーカイブ','オープン'].includes(x.status||'調査中')).length;el('summary').innerHTML=`<div class="mini"><span>登録物件</span><strong>${data.length}件</strong></div><div class="mini"><span>進行中</span><strong>${active}件</strong></div><div class="mini"><span>交渉中/契約</span><strong>${data.filter(x=>x.status=='交渉中').length}/${data.filter(x=>x.status=='契約').length}件</strong></div><div class="mini"><span>アーカイブ</span><strong>${data.filter(x=>x.status=='アーカイブ').length}件</strong></div>`;el('cards').innerHTML=arr.map(x=>{let s=score(x),cr=checkRate(x),rj=ruleJudge(x),pc=plCalc(x);return`<div class="card ${x.id==currentId?'active':''}"><div class="top"><div><h3>${x.name}</h3><p class="meta">${x.station}駅 徒歩${x.walk||'-'}分</p><p class="meta">${x.type} / ${x.propertyType||'要確認'} / 登録日：${x.date}</p><p class="meta">坪単価：${yen(unit(x))}/坪 / 営業利益：${yen(pc.profit)}</p><p class="meta">確認率：${cr.rate}% / ルール判定：${rj.level}</p><div class="progress"><div class="bar" style="width:${cr.rate}%"></div></div><span class="status">${x.status||'調査中'}</span></div><div><div class="score">${s.t}</div><span class="badge ${cls(s.j)}">${s.j}</span></div></div><div class="actions"><button class="sub" onclick="selectItem(${x.id})">選択</button><button class="sub" onclick="editItem(${x.id})">編集</button><button class="sub" onclick="goDash()">DB</button></div><div class="actions2"><button class="sub" onclick="resultItem(${x.id})">判定</button><button class="del" onclick="archiveItem(${x.id})">アーカイブ</button></div><div class="actions2"><button class="del" onclick="delItem(${x.id})">物件を削除</button></div></div>`}).join('')||'<p class="hint">該当なし</p>'}
+
+function locScore(x){
+ let walkScore = (x.walk||0)<=3?25:(x.walk||0)<=5?20:(x.walk||0)<=8?14:8;
+ let s=score(x);
+ return Math.min(100, Math.round(walkScore + s.a*1.2 + s.l*1.4));
+}
+function visibilityScore(x){let r=x.rate||{};return Math.round(((+r.visible||0)/5)*100)}
+function equipmentScore(x){let cr=checkRate(x);let pr=priorityItems(x);let checked=x.check?.items||{};let pDone=pr.filter(i=>checked[i]).length;let pRate=pr.length?Math.round(pDone/pr.length*100):cr.rate;return Math.round((cr.rate*0.45)+(pRate*0.55))}
+function contractScore(x){let checked=x.check?.items||{};let keys=['契約条件確認','営業時間制限確認','看板制限確認','用途制限確認'];let done=keys.filter(k=>checked[k]).length;return Math.round(done/keys.length*100)}
+function operationScore(x){let m=getMaster(x.type);let base=m.低オペ*20;let cr=checkRate(x);return Math.round(base*0.7+cr.rate*0.3)}
+function businessFitScore(x){let m=getMaster(x.type);let pc=plCalc(x);let t=pc.targetTsuboSales?Math.min(120,pc.tsuboSales/pc.targetTsuboSales*100):50;let rent=pc.rentRateLimit?Math.max(0,100-(Math.max(0,pc.rentRate-pc.rentRateLimit)*8)):50;let method=((m.高コスパ+m.低オペ+m.高利益)/15)*100;return Math.round(t*.35+rent*.25+method*.4)}
+function profitScore(x){let pc=plCalc(x);let profit = pc.profit>0 ? Math.min(100, 50 + pc.margin*2) : 20;let pay = pc.payback ? Math.max(20,100-(pc.payback*3)) : 50;return Math.round(profit*.65+pay*.35)}
+function locationScoreTotal(x){let s=score(x);return {
+ '立地': locScore(x),
+ '視認性': visibilityScore(x),
+ '設備': equipmentScore(x),
+ '契約': contractScore(x),
+ 'オペ適性': operationScore(x),
+ '業態適性': businessFitScore(x),
+ '収益性': profitScore(x)
+}}
+function totalDevScore(x){
+ let o=locationScoreTotal(x);
+ return Math.round(o['立地']*.18+o['視認性']*.12+o['設備']*.15+o['契約']*.10+o['オペ適性']*.12+o['業態適性']*.15+o['収益性']*.18)
+}
+function photoSummary(x){let ph=x.site?.photos||{};let keys=['exterior','interior','kitchen','around'];let total=keys.reduce((s,k)=>s+(ph[k]?.length||0),0);return {total, exterior:ph.exterior?.length||0, interior:ph.interior?.length||0, kitchen:ph.kitchen?.length||0, around:ph.around?.length||0}}
+function topRisks(x){let r=ruleJudge(x).risks.slice();let cr=checkRate(x);priorityItems(x).filter(i=>cr.missing.includes(i)).slice(0,3).forEach(i=>r.push(i+'未確認'));return [...new Set(r)].slice(0,3)}
+function topStrengths(x){let r=ruleJudge(x).goods.slice();let scores=locationScoreTotal(x);Object.entries(scores).sort((a,b)=>b[1]-a[1]).slice(0,2).forEach(([k])=>r.push(k+'が強い'));return [...new Set(r)].slice(0,3)}
+function nextActions(x){let cr=checkRate(x),pc=plCalc(x),arr=[];if(pc.profit<=0)arr.push('PL条件の見直し');if(pc.rentRate>pc.rentRateLimit)arr.push('家賃交渉');priorityItems(x).filter(i=>cr.missing.includes(i)).slice(0,3).forEach(i=>arr.push(i));cr.missing.slice(0,3).forEach(i=>arr.push(i));return [...new Set(arr)].slice(0,3)}
+
+function drawDash(){
+ let x=p(),s=score(x),cr=checkRate(x),pc=plCalc(x),rj=ruleJudge(x),dev=totalDevScore(x),devs=locationScoreTotal(x),photo=photoSummary(x);
+ let todo=nextActions(x);
+ let probability=Math.max(5,Math.min(95,Math.round((dev*.55)+(cr.rate*.18)+(pc.profit>0?15:0)-(rj.risks.length*7))));
+ el('dashBox').innerHTML=`<div class="grid3"><div class="mini"><span>出店確率</span><strong>${probability}%</strong></div><div class="mini"><span>物件評価</span><strong>${dev}点</strong></div><div class="mini"><span>ルール判定</span><strong>${rj.level}</strong></div><div class="mini"><span>確認率</span><strong>${cr.rate}%</strong></div><div class="mini"><span>営業利益</span><strong>${yen(pc.profit)}</strong></div><div class="mini"><span>坪売上</span><strong>${yen(pc.tsuboSales)}/坪</strong></div><div class="mini"><span>写真枚数</span><strong>${photo.total}枚</strong></div><div class="mini"><span>投資回収</span><strong>${pc.payback?pc.payback+'か月':'要確認'}</strong></div><div class="mini"><span>三方良し</span><strong>${masterScore(x)}</strong></div></div>
+ <div class="grid"><div class="mini"><span>立地</span><strong>${devs['立地']}点</strong></div><div class="mini"><span>視認性</span><strong>${devs['視認性']}点</strong></div><div class="mini"><span>設備</span><strong>${devs['設備']}点</strong></div><div class="mini"><span>契約</span><strong>${devs['契約']}点</strong></div><div class="mini"><span>業態適性</span><strong>${devs['業態適性']}点</strong></div><div class="mini"><span>収益性</span><strong>${devs['収益性']}点</strong></div></div>
+ <div class="note"><b>強みTOP3：</b>${topStrengths(x).join('・')||'追加確認'}<br><b>リスクTOP3：</b>${topRisks(x).join('・')||'大きなリスク未検出'}<br><b>次にやること：</b><br>① ${todo[0]||''}<br>② ${todo[1]||''}<br>③ ${todo[2]||''}</div>
+ <div class="box"><b>写真ギャラリー集計：</b><br>外観 ${photo.exterior}枚 / 店内・内装 ${photo.interior}枚 / 厨房 ${photo.kitchen}枚 / 周辺・人流 ${photo.around}枚</div>
+ <button class="primary" onclick="goResult()">判定レポートを見る</button>`}
+function selectItem(id){currentId=id;refresh();drawDash()}
+function newItem(){editId=null;currentId=null;['propertyNameInput','addr','station','walk','tsubo','rent','unit','memo'].forEach(id=>el(id).value='');el('date').value=new Date().toISOString().slice(0,10);el('type').value='居酒屋';el('propertyType').value='居抜き';el('itemStatus').value='調査中';el('editMsg').textContent='新規登録中';go('form')}
+function editItem(id){let x=data.find(y=>y.id==id);if(!x)return;currentId=id;editId=id;el('date').value=x.date;el('itemStatus').value=x.status||'調査中';el('propertyType').value=x.propertyType||'要確認';el('propertyNameInput').value=x.name;el('addr').value=x.addr;el('station').value=x.station;el('walk').value=x.walk;el('tsubo').value=x.tsubo;el('rent').value=x.rent;el('type').value=x.type||'居酒屋';el('memo').value=x.memo;calcTsubo();el('editMsg').textContent='編集中：保存すると既存物件を更新します';go('form')}
+function calcTsubo(){const t=Number(el('tsubo').value),r=Number(el('rent').value);el('unit').value=(t>0&&r>0)?yen(Math.round(r/t))+'/坪':''}
+function saveItem(){let name=el('propertyNameInput').value.trim();if(!name){alert('物件名を入力してください');return}let obj={date:el('date').value,status:el('itemStatus').value,propertyType:el('propertyType').value,name,addr:el('addr').value,station:el('station').value,walk:+el('walk').value,tsubo:+el('tsubo').value,rent:+el('rent').value,type:el('type').value,memo:el('memo').value};if(editId){let i=data.findIndex(x=>x.id==editId);data[i]={...data[i],...obj};currentId=editId}else{currentId=Date.now();data.push({id:currentId,...obj,reason:'',check:{items:{},memo:'',ruleComment:''},site:{lat:'',lng:'',facadeMemo:'',aroundMemo:'',todoMemo:'',voiceMemo:'',photos:{exterior:[],interior:[],kitchen:[],around:[]}},rate:{people:3,pass:3,market:3,visible:3,comp:3,dist:3,rentok:3},pl:{sales:0,targetTsuboSales:getMaster(el('type').value).目標坪売上,costRate:getMaster(el('type').value).原価率,laborRate:getMaster(el('type').value).人件費率,otherRate:15,rentRateLimit:getMaster(el('type').value).家賃比率上限,investment:0,avgSpend:getMaster(el('type').value).客単価}})}save();refresh();loadSite();go('site')}
+function siteItem(id){currentId=id;loadSite();go('site')}
+function photoName(k){return {exterior:'Exterior',interior:'Interior',kitchen:'Kitchen',around:'Around'}[k]}
+function photoLabel(k){return {exterior:'外観',interior:'店内・内装',kitchen:'厨房',around:'周辺・人流'}[k]}
+function loadImages(kind,input){let files=[...input.files],x=p();if(!x)return;x.site=x.site||{photos:{exterior:[],interior:[],kitchen:[],around:[]}};x.site.photos=x.site.photos||{exterior:[],interior:[],kitchen:[],around:[]};let pending=files.length;if(!pending)return;files.forEach(file=>{let reader=new FileReader();reader.onload=e=>{x.site.photos[kind].push({data:e.target.result,memo:''});pending--;if(pending===0){save();drawPhotos(kind)}};reader.readAsDataURL(file)})}
+function drawPhotos(kind){let x=p();if(!x||!x.site||!x.site.photos)return;let area=el('photos'+photoName(kind));let arr=x.site.photos[kind]||[];area.innerHTML=arr.map((ph,i)=>`<div class="photo-item"><img src="${ph.data}"><textarea placeholder="${photoLabel(kind)}メモ" onchange="savePhotoMemo('${kind}',${i},this.value)">${ph.memo||''}</textarea><button class="del" style="width:100%" onclick="deletePhoto('${kind}',${i})">写真削除</button></div>`).join('')||'<p class="small">写真未登録</p>'}
+function savePhotoMemo(kind,i,val){let x=p();x.site.photos[kind][i].memo=val;save()}
+function deletePhoto(kind,i){let x=p();x.site.photos[kind].splice(i,1);save();drawPhotos(kind)}
+function loadSite(){let x=p();if(!x)return;x.site=x.site||{lat:'',lng:'',facadeMemo:'',aroundMemo:'',todoMemo:'',voiceMemo:'',photos:{exterior:[],interior:[],kitchen:[],around:[]}};x.site.photos=x.site.photos||{exterior:[],interior:[],kitchen:[],around:[]};el('facadeMemo').value=x.site.facadeMemo||'';el('aroundMemo').value=x.site.aroundMemo||'';el('todoMemo').value=x.site.todoMemo||'';el('voiceMemo').value=x.site.voiceMemo||'';drawGPS();['exterior','interior','kitchen','around'].forEach(drawPhotos)}
+function drawGPS(){let x=p();el('gpsBox').innerHTML=x&&x.site&&x.site.lat?`GPS：${x.site.lat}, ${x.site.lng}`:'GPS未記録'}
+function getGPS(){if(!navigator.geolocation){alert('GPSが使えません');return}navigator.geolocation.getCurrentPosition(pos=>{let x=p();x.site.lat=pos.coords.latitude.toFixed(6);x.site.lng=pos.coords.longitude.toFixed(6);save();drawGPS()},()=>alert('位置情報を取得できませんでした'))}
+function startVoiceMemo(){let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('このブラウザでは音声入力が使えません。手入力してください。');return}let rec=new SR();rec.lang='ja-JP';rec.onresult=e=>{el('voiceMemo').value+=(el('voiceMemo').value?'\n':'')+e.results[0][0].transcript};rec.start()}
+function saveSite(){let x=p();if(!x)return;x.site.facadeMemo=el('facadeMemo').value;x.site.aroundMemo=el('aroundMemo').value;x.site.todoMemo=el('todoMemo').value;x.site.voiceMemo=el('voiceMemo').value;save();loadCheck();go('check')}
+function checkItem(id){currentId=id;loadCheck();go('check')}
+function checklistFor(x){let type=x.propertyType||'要確認';return [...baseChecklist['共通'],...(baseChecklist[type]||baseChecklist['要確認'])]}
+function loadCheck(){
+ let x=p();
+ if(!x)return;
+ x.check=x.check||{items:{},memo:'',ruleComment:''};
+ let all=checklistFor(x);
+ let prio=priorityItems(x);
+ let html='<div class="check-group"><h3>必要確認項目（'+(x.propertyType||'要確認')+' / '+(x.type||'業態未設定')+'）</h3>';
+ html += all.map(item=>{
+   const isPriority = prio.includes(item);
+   const checked = x.check.items && x.check.items[item] ? 'checked' : '';
+   const guide = CHECK_GUIDE[item] || '現地・契約条件に合わせて確認。';
+   return `<label class="check-item ${isPriority?'priority':''}"><input type="checkbox" data-check="${item}" ${checked}> <span class="check-body">${item}${isPriority?' ★重点':''}<span class="check-guide">${guide}</span></span></label>`;
+ }).join('');
+ html += '</div>';
+ el('checkGroups').innerHTML=html;
+ el('checkMemo').value=x.check.memo||'';
+ el('ruleComment').value=x.check.ruleComment||'';
+ drawCheckSummary();
+}
+function drawCheckSummary(){let x=p();if(!x)return;let cr=checkRate(x),rj=ruleJudge(x);el('checkSummary').innerHTML=`<b>確認率：${cr.rate}%</b><br>${cr.done}/${cr.total}項目確認済み<br><b>ルール判定：</b>${rj.level}<div class="progress"><div class="bar" style="width:${cr.rate}%"></div></div>`}
+function makeRuleComment(){
+ let x=p();
+ if(!x)return;
+ saveCheckOnly();
+ let cr=checkRate(x),rj=ruleJudge(x);
+ let pr=priorityItems(x).filter(i=>cr.missing.includes(i));
+ let msg=`ルール判定：${rj.level}\n確認率：${cr.rate}%（${cr.done}/${cr.total}）\n強み：${rj.goods.length?rj.goods.join('・'):'現時点では追加確認が必要'}\nリスク：${rj.risks.length?rj.risks.join('・'):'大きなリスクは未検出'}\n重点未確認：${pr.join('・')||'重点項目は概ね確認済み'}\n未確認：${cr.missing.slice(0,5).join('・')||'主要項目は確認済み'}\n次回確認：重点未確認項目を優先し、家賃条件・設備条件・営業時間制限を確認。`;
+ el('ruleComment').value=msg;
+}
+function saveCheckOnly(){let x=p();if(!x)return;x.check=x.check||{items:{},memo:'',ruleComment:''};x.check.items={};document.querySelectorAll('[data-check]').forEach(c=>x.check.items[c.dataset.check]=c.checked);x.check.memo=el('checkMemo').value;x.check.ruleComment=el('ruleComment').value;save();drawCheckSummary()}
+function saveCheck(){saveCheckOnly();loadRate();go('rate')}
+function loadRate(){let x=p();if(!x)return;Object.keys(x.rate||{}).forEach(k=>el(k).value=x.rate[k]);el('reason').value=x.reason||''}
+function makeReason(){let x=p();let cr=checkRate(x),rj=ruleJudge(x);let r={people:+el('people').value,pass:+el('pass').value,market:+el('market').value,visible:+el('visible').value,comp:+el('comp').value,dist:+el('dist').value,rentok:+el('rentok').value};let high=[],low=[];[['人流',r.people],['乗降者数',r.pass],['商圏',r.market],['視認性',r.visible],['競合',r.comp],['駅距離',r.dist],['家賃妥当性',r.rentok]].forEach(x=>{if(x[1]>=4)high.push(x[0]);if(x[1]<=2)low.push(x[0])});el('reason').value=`強み：${high.length?high.join('・'):'大きな強みは要確認'}。\n課題：${low.length?low.join('・'):'大きな弱点は少ない'}。\n確認率：${cr.rate}%。\nルール判定：${rj.level}。\n次回確認：未確認の設備・契約・商圏条件を優先確認。`}
+function saveRate(){let x=p();if(!x)return;x.rate={people:+el('people').value,pass:+el('pass').value,market:+el('market').value,visible:+el('visible').value,comp:+el('comp').value,dist:+el('dist').value,rentok:+el('rentok').value};x.reason=el('reason').value;save();loadPL();go('pl')}
+function applyBusinessMaster(overwrite){let x=p();let type=el('type')?.value||x?.type||'その他';let m=getMaster(type);if(overwrite||!el('costRate').value)el('costRate').value=m.原価率;if(overwrite||!el('laborRate').value)el('laborRate').value=m.人件費率;if(overwrite||!el('targetTsuboSales').value)el('targetTsuboSales').value=m.目標坪売上;if(overwrite||!el('rentRateLimit').value)el('rentRateLimit').value=m.家賃比率上限;if(overwrite||!el('avgSpend').value)el('avgSpend').value=m.客単価;if(overwrite&&x&&x.tsubo)el('investment').value=Math.round(x.tsubo*m.初期投資目安坪);drawMasterBox(type);calcPL()}
+function drawMasterBox(type){let m=getMaster(type||p()?.type||'その他');if(!el('masterBox'))return;el('masterBox').innerHTML=`<b>業態マスタ：${type||p()?.type}</b><br>目標坪売上：${yen(m.目標坪売上)}/坪 / 原価率：${m.原価率}% / 人件費率：${m.人件費率}% / 家賃比率上限：${m.家賃比率上限}%<br>客単価：${yen(m.客単価)} / 初期投資目安：${yen(m.初期投資目安坪)}/坪 / オペ難易度：${m.オペ難易度}<br>高コスパ：${m.高コスパ} / 低オペ：${m.低オペ} / 高利益：${m.高利益} / 三方良し指数：${masterScore({type:type||p()?.type})}`;}
+function loadPL(){let x=p();if(!x)return;x.pl=x.pl||{};['sales','targetTsuboSales','costRate','laborRate','otherRate','rentRateLimit','investment','avgSpend'].forEach(id=>el(id).value=x.pl[id]||'');if(!x.pl.targetTsuboSales||!x.pl.costRate||!x.pl.laborRate)applyBusinessMaster(false);drawMasterBox(x.type);calcPL()}
+function calcPL(){let x=p();if(!x)return;let fake={...x,pl:{sales:+el('sales').value,targetTsuboSales:+el('targetTsuboSales').value,costRate:+el('costRate').value,laborRate:+el('laborRate').value,otherRate:+el('otherRate').value,rentRateLimit:+el('rentRateLimit').value,investment:+el('investment').value,avgSpend:+el('avgSpend').value}},pc=plCalc(fake);let tJudge=pc.tsuboSales>=pc.targetTsuboSales?'基準以上':'基準未達';let rJudge=pc.rentRate<=pc.rentRateLimit?'基準内':'基準超過';el('plBox').innerHTML=`<div class="grid"><div class="mini"><span>月商</span><strong>${yen(pc.sales)}</strong></div><div class="mini"><span>坪売上</span><strong>${yen(pc.tsuboSales)}/坪</strong></div><div class="mini"><span>目標坪売上</span><strong>${yen(pc.targetTsuboSales)}/坪</strong></div><div class="mini"><span>坪売上評価</span><strong>${tJudge}</strong></div><div class="mini"><span>営業利益</span><strong>${yen(pc.profit)}</strong></div><div class="mini"><span>営業利益率</span><strong>${pc.margin}%</strong></div><div class="mini"><span>家賃比率</span><strong>${pc.rentRate}%</strong></div><div class="mini"><span>家賃評価</span><strong>${rJudge}</strong></div><div class="mini"><span>投資回収</span><strong>${pc.payback?pc.payback+'か月':'要確認'}</strong></div><div class="mini"><span>想定客数/月</span><strong>${fake.pl.avgSpend?Math.round(pc.sales/fake.pl.avgSpend)+'人':'-'}</strong></div></div><div class="risk"><b>PLルール判定：</b><br>坪売上：${tJudge} / 家賃比率：${rJudge}<br>業態基準に対して、坪売上と家賃比率を確認してください。</div>`}
+function savePL(){let x=p();x.pl={sales:+el('sales').value,targetTsuboSales:+el('targetTsuboSales').value,costRate:+el('costRate').value,laborRate:+el('laborRate').value,otherRate:+el('otherRate').value,rentRateLimit:+el('rentRateLimit').value,investment:+el('investment').value,avgSpend:+el('avgSpend').value};save();goResult()}
+function drawCompare(){
+ let arr=data.filter(x=>!['アーカイブ'].includes(x.status||'調査中')).sort((a,b)=>totalDevScore(b)-totalDevScore(a));
+ let rows=arr.map(x=>{let pc=plCalc(x),cr=checkRate(x),ph=photoSummary(x),dev=totalDevScore(x),rj=ruleJudge(x);return `<div class="card ${x.id==currentId?'active':''}"><div class="top"><div><h3>${x.name}</h3><p class="meta">${x.station}駅 / ${x.type} / ${x.status||'調査中'}</p><p class="meta">物件評価：${dev}点 / ルール：${rj.level}</p><p class="meta">坪売上：${yen(pc.tsuboSales)}/坪 / 営業利益：${yen(pc.profit)} / 確認率：${cr.rate}% / 写真：${ph.total}枚</p></div><div><button class="sub" onclick="selectItem(${x.id});goDash()">選択</button></div></div></div>`}).join('');
+ el('compareBox').innerHTML=`<div class="grid3"><div class="mini"><span>比較対象</span><strong>${arr.length}件</strong></div><div class="mini"><span>最高スコア</span><strong>${arr[0]?totalDevScore(arr[0]):0}点</strong></div><div class="mini"><span>黒字物件</span><strong>${arr.filter(x=>plCalc(x).profit>0).length}件</strong></div></div>${rows||'<p class="hint">比較対象がありません。</p>'}`
+}
+function resultItem(id){currentId=id;goResult()}
+function goResult(){drawResult();go('result')}
+function drawResult(){let x=p();if(!x){el('res').innerHTML='';return}let s=score(x),cr=checkRate(x),rj=ruleJudge(x),pc=plCalc(x),items=[['集客力',s.a],['商圏力',s.m],['立地力',s.l],['収益性',s.pr]],strong=items.slice().sort((a,b)=>b[1]-a[1])[0],weak=items.slice().sort((a,b)=>a[1]-b[1])[0];let site=x.site||{},photos=site.photos||{};let c=s.j=='出店ライン'?`出店ラインです。特に${strong[0]}が強みです。ただし確認率${cr.rate}%のため、未確認項目を潰してから最終判断してください。`:s.j=='要検討'?`要検討です。${weak[0]}の改善余地と未確認項目を確認してください。`:`見送り候補です。${weak[0]}が弱く、条件改善が必要です。`;let imgs=['exterior','interior','kitchen','around'].map(k=>`<div class="photo-section"><h3>${photoLabel(k)}</h3><div class="photo-list">${(photos[k]||[]).map(ph=>`<div class="photo-item"><img src="${ph.data}"><p class="small">${ph.memo||''}</p></div>`).join('')||'<p class="small">写真未登録</p>'}</div></div>`).join('');el('res').innerHTML=`<div class="card"><div class="top"><div><h3>${x.name}</h3><p class="meta">${x.station}駅 徒歩${x.walk}分 / ${x.type}</p><p class="meta">物件タイプ：${x.propertyType||'要確認'}</p><p class="meta">ステータス：${x.status||'調査中'}</p><p class="meta">坪単価：${yen(unit(x))}/坪</p></div><div><div class="score">${s.t}</div><span class="badge ${cls(s.j)}">${s.j}</span></div></div></div><div class="grid3"><div class="mini"><span>物件評価</span><strong>${totalDevScore(x)}点</strong></div><div class="mini"><span>出店判断目安</span><strong>${Math.max(5,Math.min(95,Math.round((totalDevScore(x)*.55)+(cr.rate*.18)+(pc.profit>0?15:0)-(rj.risks.length*7))))}%</strong></div><div class="mini"><span>写真枚数</span><strong>${photoSummary(x).total}枚</strong></div></div><div class="grid3"><div class="mini"><span>集客力</span><strong>${s.a}/25</strong></div><div class="mini"><span>商圏力</span><strong>${s.m}/25</strong></div><div class="mini"><span>立地力</span><strong>${s.l}/25</strong></div><div class="mini"><span>収益性</span><strong>${s.pr}/25</strong></div><div class="mini"><span>確認率</span><strong>${cr.rate}%</strong></div><div class="mini"><span>営業利益</span><strong>${yen(pc.profit)}</strong></div></div><div class="note"><b>強みTOP3：</b>${topStrengths(x).join('・')||strong[0]}<br><b>リスクTOP3：</b>${topRisks(x).join('・')||weak[0]}<br><b>次にやること：</b><br>① ${nextActions(x)[0]||''}<br>② ${nextActions(x)[1]||''}<br>③ ${nextActions(x)[2]||''}<br><b>コメント：</b>${c}</div><div class="risk"><b>ルール判定：</b>${rj.level}<br><b>リスク：</b>${rj.risks.join('・')||'大きなリスク未検出'}<br><b>コメント：</b><br>${(x.check?.ruleComment||'未作成').replace(/\n/g,'<br>')}</div><div class="box"><b>PL：</b><br>月商：${yen(pc.sales)} / 坪売上：${yen(pc.tsuboSales)}/坪（目標 ${yen(pc.targetTsuboSales)}/坪） / 営業利益：${yen(pc.profit)} / 利益率：${pc.margin}% / 家賃比率：${pc.rentRate}%（上限 ${pc.rentRateLimit}%） / 投資回収：${pc.payback?pc.payback+'か月':'要確認'}</div><div class="box"><b>重点確認ポイント：</b><br>${priorityItems(x).join('・')||'重点項目なし'}<br><br><b>未確認項目：</b><br>${cr.missing.join('・')||'主要項目は確認済み'}</div><div class="box"><b>現地調査メモ：</b><br>GPS：${site.lat||'-'}, ${site.lng||'-'}<br>外観：${site.facadeMemo||'未入力'}<br>周辺：${site.aroundMemo||'未入力'}<br>追加確認：${site.todoMemo||'未入力'}<br>音声/ロケハンメモ：${site.voiceMemo||'未入力'}</div><div class="box"><b>登録写真：</b>${imgs}</div><div class="box"><b>評価理由メモ：</b><br>${(x.reason||'未入力').replace(/\n/g,'<br>')}</div>`}
+function archiveItem(id){let x=data.find(y=>y.id==id);if(!x)return;x.status='アーカイブ';save();refresh()}
+function delItem(id){let x=data.find(y=>y.id==id);if(confirm(x.name+'を削除しますか？')){data=data.filter(y=>y.id!=id);currentId=data[0]?.id||null;save();refresh()}}
+function resetData(){if(confirm('初期化しますか？')){data=sample();save();refresh()}}
+el('date').value=new Date().toISOString().slice(0,10);refresh();
+</script>
+</body>
+</html>
