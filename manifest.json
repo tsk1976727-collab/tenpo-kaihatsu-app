@@ -1,0 +1,22 @@
+{
+  "name": "店舗開発NAVI",
+  "short_name": "店舗開発NAVI",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fff8e8",
+  "theme_color": "#64c7dc",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
